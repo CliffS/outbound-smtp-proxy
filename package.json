@@ -1,5 +1,5 @@
 {
-  "name": "smtp-proxy-outbound",
+  "name": "outbound-smtp-proxy",
   "version": "1.0.0",
   "description": " This will listen on a port for a redirected SMTP connection and upgrade it to TLS if possible.",
   "main": "src/outbound.coffee",
@@ -22,6 +22,7 @@
     "ffi": "github:node-ffi/node-ffi",
     "ref": "^1.3.5",
     "ref-struct": "^1.1.0",
-    "smtp-connection": "^4.0.2"
+    "smtp-connection": "^4.0.2",
+    "starttls": "^1.0.1"
   }
 }
