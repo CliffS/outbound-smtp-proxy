@@ -87,7 +87,7 @@ createOutboundConnection = (inbound) ->
     if data.match /STARTTLS/
       outbound.write 'STARTTLS\r\n'
       TLSStarted = true
-    else if data.match(/^220 .*ready/i) and TLSStarted is true
+    else if data.match(/^220 /i) and TLSStarted is true
       outbound.setEncoding null
       outbound.removeAllListeners 'data'
       tls = TLS.connect
