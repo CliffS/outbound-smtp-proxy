@@ -18,19 +18,26 @@ CONFIG = switch os.hostname()
   when 'pt'
     port: 25
     host: '127.0.0.1'
-    local: '54.38.99.66'
+    local: '54.38.39.66'
 
 log = Bunyan.createLogger
   name: 'outbound-smtp'
-  # serializers:
-    # err: Bunyan.stdSerializers.err
-  streams: [
-    level: 'debug'
-    path: '/var/log/outbound-smtp.log'
-    type: 'rotating-file'
-    period: '1d'
-    count: 14
-  ]
+  #serializers:
+    #err: Bunyan.stdSerializers.err
+  streams:
+    [
+      level: 'debug'
+      path: '/var/log/outbound-smtp.log'
+      type: 'rotating-file'
+      period: '1d'
+      count: 14
+    ,
+      level: 'trace'
+      path: '/var/log/outbound-smtp-trace.log'
+      type: 'rotating-file'
+      period: '1h'
+      count: 2
+    ]
 
 log.info 'Server started'
 
@@ -43,6 +50,7 @@ server.listen CONFIG.port, CONFIG.host
 
 createOutboundConnection = (inbound) ->
   ehlo = ''
+  TLSStarted = false
   original = Original inbound
   address = original.address
   inbound.setEncoding 'utf8'
@@ -73,9 +81,11 @@ createOutboundConnection = (inbound) ->
     log.debug address: address, "outbound closed"
     inbound.end()
   .on 'data', startData = (data) =>
+    log.trace address: address, "<< #{data}"
     if data.match /STARTTLS/
       outbound.write 'STARTTLS\r\n'
-    else if data.match /^220 Ready to start TLS/
+      TLSStarted = true
+    else if data.match(/^220 .*ready/i) and TLSStarted is true
       outbound.setEncoding null
       outbound.removeAllListeners 'data'
       tls = TLS.connect
@@ -89,17 +99,20 @@ createOutboundConnection = (inbound) ->
           "TLS stream"
         inbound.end()
       .setEncoding 'utf8'
+      .on 'data', (data) =>
+        log.trace "<~ #{data}"
+        inbound.write data
       .once 'secureConnect', =>
         log.info address: address, "TLS connected (%s) with %s",
           if tls.authorized then 'authorized' else 'unauthorized',
           tls.getProtocol()
         tls.write ehlo
         inbound.pipe tls
-        tls.pipe inbound
+        # tls.pipe inbound
       .once 'close', =>
         log.debug address: address, 'TLS connection closed'
-        inbound.close()
-        outbound.close()
+        inbound.end()
+        outbound.end()
     else if data.match /^250 /m
       inbound.write data
       log.info address: address, 'no STARTTLS detected'
@@ -109,6 +122,7 @@ createOutboundConnection = (inbound) ->
     else
       inbound.write data
   inbound.once 'data', (data) =>
+    log.trace address:address, ">> #{data}"
     ehlo = data
     outbound.write data
 
