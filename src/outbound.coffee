@@ -1,87 +1,114 @@
 #!/usr/bin/env coffee
 #
 
+os  = require 'os'
 net = require 'net'
-# util = require 'util'
 TLS = require 'tls'
+Bunyan = require 'bunyan'
+
 Original = require './getOriginalDst'
 
-LISTEN =
-  port: 25125
-  host: '127.0.0.1'
 
-LOCAL = '10.20.30.38' # '54.38.39.66'
-LOCAL = '54.38.39.66'
-LOCAL = '192.168.0.65'
+CONFIG = switch os.hostname()
+  when 'prog'
+    port: 25125
+    host: '127.0.0.1'
+    local: '10.20.30.38'
+    outboundPort: 25
+  when 'pt'
+    port: 25
+    host: '127.0.0.1'
+    local: '54.38.99.66'
+
+log = Bunyan.createLogger
+  name: 'outbound-smtp'
+  # serializers:
+    # err: Bunyan.stdSerializers.err
+  streams: [
+    level: 'debug'
+    path: '/var/log/outbound-smtp.log'
+    type: 'rotating-file'
+    period: '1d'
+    count: 14
+  ]
+
+log.info 'Server started'
 
 server = net.createServer (socket) ->
-  console.log
-    address: server.address()
-    original: Original socket
+  original = Original socket
+  log.info address: original.address, "inbound connection"
   createOutboundConnection socket
 
-server.listen LISTEN.port, LISTEN.host
+server.listen CONFIG.port, CONFIG.host
 
 createOutboundConnection = (inbound) ->
-  message = ehlo = ''
-  inbound.setEncoding 'utf8'
-  inbound.on 'error', (err) =>
-    console.error "Inbound:", err
-  inbound.on 'close', =>
-    console.log 'Inbound Connection Closed'
-    outbound?.end()
+  ehlo = ''
   original = Original inbound
+  address = original.address
+  inbound.setEncoding 'utf8'
+  inbound.once 'error', (err) =>
+    log.error
+      address: address
+      err: err,
+      "inbound stream"
+    inbound.end()
+  inbound.once 'close', =>
+    log.debug address: address, 'inbound connection closed'
+    outbound?.end()
   options =
-    port: 2525 # original.port
+    port: CONFIG.outboundPort ? original.port
     host: original.address
-    localAddress: LOCAL
+    localAddress: CONFIG.local
   outbound = new net.Socket
   outbound.setEncoding 'utf8'
-  outbound.on 'error', (err) =>
-    console.error err
-  .on 'connect', =>
-    console.log 'connected'
-  .on 'close', =>
-    console.log 'Outbound Connection Closed'
+  outbound.once 'error', (err) =>
+    log.error
+      address: address
+      err: err,
+      "outbound stream"
+    inbound.end()
+  .once 'connect', =>
+    log.debug address: address, "outbound connected"
+  .once 'close', =>
+    log.debug address: address, "outbound closed"
     inbound.end()
   .on 'data', startData = (data) =>
-    process.stdout.write "<< #{data}"
     if data.match /STARTTLS/
-      [ data ] = data.split /\r?\n/
-      message = data.replace /^250-(.*)/, "250 $1\r\n"
-      data = ''
       outbound.write 'STARTTLS\r\n'
     else if data.match /^220 Ready to start TLS/
-      data = ''
       outbound.setEncoding null
       outbound.removeAllListeners 'data'
       tls = TLS.connect
         socket: outbound
         rejectUnauthorized: false
         honorCipherOrder: true
-      tls.on 'data', (data) =>
-        process.stdout.write "TLS: #{data}"
-        # inbound.write data
-      tls.on 'error', (err) =>
-        console.log 'TLS', err
+      tls.once 'error', (err) =>
+        log.error
+          address: address
+          err: err,
+          "TLS stream"
+        inbound.end()
       .setEncoding 'utf8'
-      .on 'secureConnect', =>
-        console.log "TLS Connected: ",
-          if tls.authorized then 'authorized' else 'unauthorized'
-        console.log tls.getCipher(), tls.getProtocol()
+      .once 'secureConnect', =>
+        log.info address: address, "TLS connected (%s) with %s",
+          if tls.authorized then 'authorized' else 'unauthorized',
+          tls.getProtocol()
         tls.write ehlo
         inbound.pipe tls
         tls.pipe inbound
-      .on 'close', =>
-        console.log 'TLS Connection Closed'
+      .once 'close', =>
+        log.debug address: address, 'TLS connection closed'
+        inbound.close()
+        outbound.close()
     else if data.match /^250 /m
-      console.log 'No STARTTLS Detected'
+      inbound.write data
+      log.info address: address, 'no STARTTLS detected'
       outbound.removeAllListeners 'data'
       inbound.pipe outbound
       outbound.pipe inbound
-    inbound.write data
+    else
+      inbound.write data
   inbound.once 'data', (data) =>
-    process.stdout.write ">> #{data}"
     ehlo = data
     outbound.write data
 
