@@ -1,0 +1,12 @@
+[Unit]
+Description=Proxy to listen on localhost:25 and add STARTTLS to 54.38.99.66:25 
+Before=communigate.service
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/local/node/outbound-smtp-proxy
+ExecStart=/usr/local/bin/npm start
+Restart=always
+
+[Install]
+WantedBy=communigate.service
