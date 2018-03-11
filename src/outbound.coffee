@@ -24,8 +24,6 @@ CONFIG = switch os.hostname()
 
 log = Bunyan.createLogger
   name: 'outbound-smtp'
-  #serializers:
-    #err: Bunyan.stdSerializers.err
   streams:
     [
       level: 'debug'
@@ -39,6 +37,8 @@ log = Bunyan.createLogger
       type: 'rotating-file'
       period: '1d'
       count: 2
+      serializers:
+        err: Bunyan.stdSerializers.err
     ]
 
 log.info 'Server started'
