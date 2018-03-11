@@ -117,7 +117,7 @@ createOutboundConnection = (inbound) ->
         outbound.end()
     else if data.match /^250 /m
       inbound.write data
-      log.info address: address, 'no STARTTLS detected'
+      log.warn address: address, 'no STARTTLS detected'
       outbound.removeAllListeners 'data'
       inbound.pipe outbound
       outbound.pipe inbound
