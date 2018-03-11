@@ -95,10 +95,11 @@ createOutboundConnection = (inbound) ->
         rejectUnauthorized: false
         honorCipherOrder: true
       tls.once 'error', (err) =>
-        log.error
-          address: address
-          err: err,
-          "TLS stream"
+        if err and Object.keys(err).length
+          log.error
+            address: address
+            err: err,
+            "TLS stream"
         inbound.end()
       .setEncoding 'utf8'
       .on 'data', (data) =>
