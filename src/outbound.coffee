@@ -37,7 +37,7 @@ log = Bunyan.createLogger
       level: 'trace'
       path: '/var/log/outbound-smtp-trace.log'
       type: 'rotating-file'
-      period: '1h'
+      period: '1d'
       count: 2
     ]
 
