@@ -24,6 +24,8 @@ CONFIG = switch os.hostname()
 
 log = Bunyan.createLogger
   name: 'outbound-smtp'
+  serializers:
+    err: Bunyan.stdSerializers.err
   streams:
     [
       level: 'debug'
@@ -37,8 +39,6 @@ log = Bunyan.createLogger
       type: 'rotating-file'
       period: '1d'
       count: 2
-      serializers:
-        err: Bunyan.stdSerializers.err
     ]
 
 log.info 'Server started'
@@ -64,7 +64,6 @@ createOutboundConnection = (inbound) ->
     inbound.end()
   inbound.once 'close', =>
     log.debug address: address, 'inbound connection closed'
-    outbound?.end()
   options =
     port: CONFIG.outboundPort ? original.port
     host: original.address
