@@ -26,6 +26,6 @@
     "ref-struct": "^1.1.0"
   },
   "devDependencies": {
-    "coffeescript": "^2.2.2"
+    "coffeescript": "^2.3.2"
   }
 }
