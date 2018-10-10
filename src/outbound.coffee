@@ -85,7 +85,10 @@ createOutboundConnection = (inbound) ->
       "outbound stream"
     inbound.end()
   .once 'connect', =>
-    log.debug address: address, "outbound connected"
+    log.debug
+      address: address
+      local: local
+    , "outbound connected"
   .once 'close', =>
     log.debug address: address, "outbound closed"
     inbound.end()
