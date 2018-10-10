@@ -88,7 +88,7 @@ createOutboundConnection = (inbound) ->
   .once 'connect', =>
     log.debug
       address: address
-      local: local
+      local: outbound.localAddress
     , "outbound connected"
   .once 'close', =>
     log.debug address: address, "outbound closed"
