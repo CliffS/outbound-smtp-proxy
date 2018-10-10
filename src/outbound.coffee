@@ -18,8 +18,8 @@ CONFIG = switch os.hostname()
   when 'pt'
     port: 25
     host: '127.0.0.1'
-    # local: '54.38.39.66'
-    local: '188.165.11.148'
+    local: '54.38.39.66'
+    # local: '188.165.11.148'
   else
     throw new Error "No config found for #{os.hostname()}"
 
