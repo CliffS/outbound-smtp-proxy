@@ -7,6 +7,7 @@ TLS = require 'tls'
 Bunyan = require 'bunyan'
 
 Original = require './getOriginalDst'
+Package  = require '../package.json'
 
 
 CONFIG = switch os.hostname()
@@ -45,7 +46,7 @@ log = Bunyan.createLogger
       count: 2
     ]
 
-log.info 'Server started'
+log.info "Server started: version #{Package.version}"
 
 server = net.createServer (socket) ->
   original = Original socket
