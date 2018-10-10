@@ -70,7 +70,7 @@ createOutboundConnection = (inbound) ->
   inbound.once 'close', =>
     log.debug address: address, 'inbound connection closed'
   local = if Array.isArray CONFIG.local
-    ptr = Math.random() * CONFIG.local.length
+    ptr = Math.floor Math.random() * CONFIG.local.length
     CONFIG.local[ptr]
   else CONFIG.local
   options =
