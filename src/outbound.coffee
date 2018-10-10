@@ -18,8 +18,11 @@ CONFIG = switch os.hostname()
   when 'pt'
     port: 25
     host: '127.0.0.1'
-    # local: '54.38.39.66'
-    local: '188.165.11.148'
+    local: [
+      '54.38.39.66'
+      '188.165.11.148'
+      '188.165.11.150'
+    ]
   else
     throw new Error "No config found for #{os.hostname()}"
 
@@ -30,13 +33,13 @@ log = Bunyan.createLogger
   streams:
     [
       level: 'debug'
-      path: '/var/log/outbound-smtp.log'
+      path: '/var/log/outbound-smtp/debug.log'
       type: 'rotating-file'
       period: '1d'
       count: 14
     ,
       level: 'trace'
-      path: '/var/log/outbound-smtp-trace.log'
+      path: '/var/log/outbound-smtp/trace.log'
       type: 'rotating-file'
       period: '1d'
       count: 2
@@ -65,10 +68,14 @@ createOutboundConnection = (inbound) ->
     inbound.end()
   inbound.once 'close', =>
     log.debug address: address, 'inbound connection closed'
+  local = if Array.isArray CONFIG.local
+    ptr = Math.random() * Config.local.length
+    CONFIG.local[ptr]
+  else CONFIG.local
   options =
     port: CONFIG.outboundPort ? original.port
     host: original.address
-    localAddress: CONFIG.local
+    localAddress: local
   outbound = new net.Socket
   outbound.setEncoding 'utf8'
   outbound.once 'error', (err) =>
@@ -83,7 +90,10 @@ createOutboundConnection = (inbound) ->
     log.debug address: address, "outbound closed"
     inbound.end()
   .on 'data', startData = (data) =>
-    log.trace address: address, "<< #{data}"
+    if data.match /^[45]\d\d/
+      log.warn address: address, "<< #{data}"
+    else
+      log.trace address: address, "<< #{data}"
     if data.match /STARTTLS/
       outbound.write 'STARTTLS\r\n'
       TLSStarted = true
@@ -103,7 +113,10 @@ createOutboundConnection = (inbound) ->
         inbound.end()
       .setEncoding 'utf8'
       .on 'data', (data) =>
-        log.trace "<~ #{data}"
+        if data.match /^[45]\d\d/
+          log.warn address: address, "<~ #{data}"
+        else
+          log.trace address: address, "<~ #{data}"
         inbound.write data
       .once 'secureConnect', =>
         log.info address: address, "TLS connected (%s) with %s",
