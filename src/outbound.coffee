@@ -127,7 +127,11 @@ createOutboundConnection = (inbound) ->
           if tls.authorized then 'authorized' else 'unauthorized',
           tls.getProtocol()
         tls.write ehlo
-        inbound.pipe tls
+        inbound.on 'data', (data) =>
+          if data.match /^(MAIL|REPT|DATA|QUIT)/
+            log.trace address: address, "~> #{data}"
+          tls.write data
+        # inbound.pipe tls
         # tls.pipe inbound
       .once 'close', =>
         log.debug address: address, 'TLS connection closed'
