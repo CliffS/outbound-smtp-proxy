@@ -95,9 +95,15 @@ createOutboundConnection = (inbound) ->
     inbound.end()
   .on 'data', startData = (data) =>
     if data.match /^[45]\d\d/
-      log.warn address: address, "<< #{data}"
+      log.warn
+        address: address
+        local: outbound.localAddress
+      , "<< #{data}"
     else
-      log.trace address: address, "<< #{data}"
+      log.trace
+        address: address
+        local: outbound.localAddress
+      , "<< #{data}"
     if data.match /STARTTLS/
       outbound.write 'STARTTLS\r\n'
       TLSStarted = true
@@ -118,9 +124,15 @@ createOutboundConnection = (inbound) ->
       .setEncoding 'utf8'
       .on 'data', (data) =>
         if data.match /^[45]\d\d/
-          log.warn address: address, "<~ #{data}"
+          log.warn
+            address: address
+            local: outbound.localAddress
+          , "<~ #{data}"
         else
-          log.trace address: address, "<~ #{data}"
+          log.trace
+            address: address
+            local: outbound.localAddress
+          , "<~ #{data}"
         inbound.write data
       .once 'secureConnect', =>
         log.info address: address, "TLS connected (%s) with %s",
