@@ -6,15 +6,15 @@ net = require 'net'
 TLS = require 'tls'
 Bunyan = require 'bunyan'
 
-Original = require './getOriginalDst'
+Original = require './get-original-dst'
 Package  = require '../package.json'
 
 
 CONFIG = switch os.hostname()
-  when 'prog'
+  when 'prog', 'spectre'
     port: 25125
     host: '127.0.0.1'
-    local: '10.20.30.38'
+    local: '10.20.30.20'
     outboundPort: 25
   when 'pt'
     port: 25
