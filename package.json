@@ -5,7 +5,7 @@
   "main": "src/outbound.coffee",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "coffee src/outbound.coffee",
+    "start": "coffee --nodejs --tls-min-v1.0 src/outbound.coffee",
     "watch": "coffee -c -w -o lib src &",
     "compile": "coffee -c -o lib src"
   },
