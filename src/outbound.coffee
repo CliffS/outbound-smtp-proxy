@@ -20,9 +20,10 @@ CONFIG = switch os.hostname()
     port: 25
     host: '127.0.0.1'
     local: [
-      '54.38.39.66'
-      '188.165.11.148'
-      '188.165.11.150'
+      #'54.38.39.66'         # pt.may.be
+      '178.32.61.145'       # cgp.might.be
+      '188.165.11.148'      # outbound.might.be.
+      '188.165.11.150'      # spare.might.be.
     ]
   else
     throw new Error "No config found for #{os.hostname()}"
