@@ -25,6 +25,6 @@
     "struct": "0.0.12"
   },
   "devDependencies": {
-    "coffeescript": "^2.4.1"
+    "coffeescript": "^2.5.0"
   }
 }
