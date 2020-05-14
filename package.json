@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "coffee --nodejs --tls-min-v1.0 src/outbound.coffee",
     "watch": "coffee -c -w -o lib src &",
-    "compile": "coffee -c -o lib src"
+    "build": "coffee -c -o lib src"
   },
   "repository": {
     "type": "git",
