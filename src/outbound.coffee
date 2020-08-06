@@ -23,7 +23,7 @@ CONFIG = switch os.hostname()
     host: '127.0.0.1'
     lookup: [
       'pt.may.be'
-      # 'cgp.might.be'
+      'cgp.might.be'
       'outbound.might.be'
       'spare.might.be'
     ]
