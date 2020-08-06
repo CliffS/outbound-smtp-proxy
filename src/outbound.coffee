@@ -4,6 +4,7 @@
 os  = require 'os'
 net = require 'net'
 TLS = require 'tls'
+DNS = require('dns').promises
 Bunyan = require 'bunyan'
 
 Original = require './get-original-dst'
@@ -20,11 +21,12 @@ CONFIG = switch os.hostname()
     port: 25
     host: '127.0.0.1'
     local: [
-      #'54.38.39.66'         # pt.may.be
-      '178.32.61.145'       # cgp.might.be
+      '54.38.39.66'         # pt.may.be
+      # '178.32.61.145'       # cgp.might.be
       '188.165.11.148'      # outbound.might.be.
       '188.165.11.150'      # spare.might.be.
     ]
+    helo: 'mail.inspired-networks.co.uk'
   else
     throw new Error "No config found for #{os.hostname()}"
 
@@ -74,6 +76,10 @@ createOutboundConnection = (inbound) ->
     ptr = Math.floor Math.random() * CONFIG.local.length
     CONFIG.local[ptr]
   else CONFIG.local
+  # This should probably be cached
+  reverse = await DNS.reverse local
+  reverse = "#{reverse}.may.be" if reverse is 'pt'
+  log.debug "local = #{local}, reverse = \"#{reverse}\""
   options =
     port: CONFIG.outboundPort ? original.port
     host: original.address
@@ -160,8 +166,8 @@ createOutboundConnection = (inbound) ->
       inbound.write data
   inbound.once 'data', (data) =>
     log.trace address:address, ">> #{data}"
-    ehlo = data
-    outbound.write data
+    ehlo = data.replace CONFIG.helo, reverse
+    outbound.write ehlo
 
   outbound.connect options
 
