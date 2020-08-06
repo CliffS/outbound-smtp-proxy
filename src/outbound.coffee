@@ -15,17 +15,19 @@ CONFIG = switch os.hostname()
   when 'prog', 'spectre'
     port: 25125
     host: '127.0.0.1'
+    lookup: os.hostname()
     local: '10.20.30.20'
     outboundPort: 25
   when 'pt'
     port: 25
     host: '127.0.0.1'
-    local: [
-      '54.38.39.66'         # pt.may.be
-      # '178.32.61.145'       # cgp.might.be
-      '188.165.11.148'      # outbound.might.be.
-      '188.165.11.150'      # spare.might.be.
+    lookup: [
+      'pt.may.be'
+      # 'cgp.might.be'
+      'outbound.might.be'
+      'spare.might.be'
     ]
+    local: []
     helo: 'mail.inspired-networks.co.uk'
   else
     throw new Error "No config found for #{os.hostname()}"
@@ -48,6 +50,19 @@ log = Bunyan.createLogger
       period: '1d'
       count: 2
     ]
+
+do ->
+  if Array.isArray CONFIG.lookup
+    Resolver = DNS.Resolver
+    resolver = new Resolver
+    # Son't use local servers as they'll screw up the local host
+    resolver.setServers [
+      '8.8.8.8'
+      '8.8.4.4'
+    ]
+    local = await Promise.all ( resolver.resolve4 host for host in CONFIG.lookup )
+    CONFIG.local = local.flat 3
+    log.debug "local = #{CONFIG.local.join ", "}"
 
 log.info "Server started: version #{Package.version}"
 
@@ -72,13 +87,13 @@ createOutboundConnection = (inbound) ->
     inbound.end()
   inbound.once 'close', =>
     log.debug address: address, 'inbound connection closed'
-  local = if Array.isArray CONFIG.local
+  [ local, reverse ] = if Array.isArray CONFIG.local
     ptr = Math.floor Math.random() * CONFIG.local.length
-    CONFIG.local[ptr]
-  else CONFIG.local
-  # This should probably be cached
-  reverse = await DNS.reverse local
-  reverse = "#{reverse}.may.be" if reverse is 'pt'
+    [
+      CONFIG.local[ptr]
+      CONFIG.lookup[ptr]
+    ]
+  else [ CONFIG.local, CONFIG.lookup ]
   log.debug "local = #{local}, reverse = \"#{reverse}\""
   options =
     port: CONFIG.outboundPort ? original.port
