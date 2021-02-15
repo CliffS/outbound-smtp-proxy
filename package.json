@@ -1,6 +1,6 @@
 {
   "name": "outbound-smtp-proxy",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": " This will listen on a port for a redirected SMTP connection and upgrade it to TLS if possible.",
   "main": "src/outbound.coffee",
   "scripts": {
