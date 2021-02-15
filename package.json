@@ -22,6 +22,7 @@
   "dependencies": {
     "bunyan": "^1.8.15",
     "ffi-napi": "^3.1.0",
+    "mailauth": "^2.0.0",
     "struct": "0.0.12"
   },
   "devDependencies": {
