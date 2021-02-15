@@ -1,5 +1,5 @@
 # https://stackoverflow.com/a/29635482/1150513
-ffi         =  require  'ffi'
+ffi         =  require  'ffi-napi'
 Struct      =  require  'struct'
 
 current = ffi.Library null,
