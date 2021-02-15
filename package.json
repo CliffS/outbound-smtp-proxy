@@ -20,11 +20,11 @@
   },
   "homepage": "https://github.com/CliffS/smtp-proxy-outbound#readme",
   "dependencies": {
-    "bunyan": "^1.8.12",
+    "bunyan": "^1.8.15",
     "ffi": "github:lxe/node-ffi#node-12",
     "struct": "0.0.12"
   },
   "devDependencies": {
-    "coffeescript": "^2.4.1"
+    "coffeescript": "^2.5.1"
   }
 }
