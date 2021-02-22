@@ -21,8 +21,8 @@
   "homepage": "https://github.com/CliffS/smtp-proxy-outbound#readme",
   "dependencies": {
     "bunyan": "^1.8.15",
-    "ffi-napi": "^3.1.0",
     "mailauth": "^2.0.0",
+    "ffi-napi": "^4.0.1",
     "struct": "0.0.12"
   },
   "devDependencies": {
