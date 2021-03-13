@@ -29,6 +29,16 @@ CONFIG = switch os.hostname()
     ]
     local: []
     helo: 'mail.inspired-networks.co.uk'
+  when 'dis'
+    port: 25
+    host: '127.0.0.1'
+    lookup: [
+      'secure-1.might.be'
+      'secure-2.might.be'
+      'secure-3.might.be'
+    ]
+    local: []
+    helo: 'mail.inspired-networks.co.uk'
   else
     throw new Error "No config found for #{os.hostname()}"
 
